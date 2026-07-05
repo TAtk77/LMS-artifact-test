@@ -1,0 +1,26 @@
+﻿ID,Right,Wrong
+strip001,Artifact,Ventricular Ectopy
+strip002,Artifact,Ventricular Ectopy
+strip003,Artifact,Ventricular Ectopy
+strip004,Ventricular Ectopy,Artifact
+strip005,Artifact,Ventricular Ectopy
+strip006,Artifact,Ventricular Ectopy
+strip007,Artifact,Atrial Flutter
+strip008,Ventricular Ectopy,Artifact
+strip009,Artifact,Atrial Flutter
+strip010,Ventricular Ectopy,Artifact
+strip011,Artifact,Ventricular Ectopy
+strip012,Artifact,Ventricular Ectopy
+strip013,SV Ectopy,Artifact
+strip014,SV Ectopy,Artifact
+strip015,Artifact,Ventricular Ectopy
+strip016,Artifact,Ventricular Ectopy
+strip017,Artifact,SV Ectopy
+strip018,Artifact,Ventricular Ectopy
+strip019,Artifact,Ventricular Ectopy
+strip020,Artifact,Ventricular Ectopy
+strip021,Artifact,Ventricular Ectopy
+strip022,Artifact,SV Ectopy
+strip023,Ventricular Ectopy,Artifact
+strip024,Artifact,Ventricular Ectopy
+strip025,Artifact,Atrial Flutter
