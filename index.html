@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pivotal Health | ECG Artifact Test</title>
+<title>ECG Artifact Drill</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
 
@@ -36,7 +36,7 @@
   --red-lit:   #c0392b;
   --text:      #1a2535;
   --muted:     #4a6480;
-  --label:     #4f77a0;
+  --label:     #1e5c9a;
   --white:     #0d1a2e;
 }
 
@@ -76,7 +76,7 @@ header::before {
 .header-text { flex: 1; }
 .header-eyebrow {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 12px; font-weight: 600;
+  font-size: 11px; font-weight: 600;
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--label); margin-bottom: 4px;
 }
@@ -342,8 +342,8 @@ main {
 <header>
   <div class="header-inner">
     <div class="header-text">
-      <div class="header-eyebrow">Pivotal Health · Cardiac Technician Training</div>
-      <h1>ECG <span>Artifact Test</span></h1>
+      <div class="header-eyebrow">Pivotal Health · CCT Training</div>
+      <h1>ECG <span>Artifact Drill</span></h1>
       <div class="header-sub"><span id="strip-count">25</span> strips · Identify artifact vs. real rhythm · Self-scoring</div>
     </div>
     <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
@@ -384,37 +384,20 @@ main {
 <script>
 // ── IMAGE BASE URL ────────────────────────────────────────────
 const IMG_BASE = 'https://tatk77.github.io/LMS-artifact-test/images/';
+const CSV_URL  = 'https://tatk77.github.io/LMS-artifact-test/answer_key.csv';
 
-// ── QUESTIONS ─────────────────────────────────────────────────
-// Format: { id, correct, wrong }
-// correct = the right answer, wrong = the distractor
-const QUESTIONS = [
-  { id:'strip001', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip002', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip003', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip004', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
-  { id:'strip005', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip006', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip007', correct:'Artifact',            wrong:'Atrial Flutter'     },
-  { id:'strip008', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
-  { id:'strip009', correct:'Artifact',            wrong:'Atrial Flutter'     },
-  { id:'strip010', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
-  { id:'strip011', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip012', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip013', correct:'SV Ectopy',           wrong:'Artifact'           },
-  { id:'strip014', correct:'SV Ectopy',           wrong:'Artifact'           },
-  { id:'strip015', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip016', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip017', correct:'Artifact',            wrong:'SV Ectopy'          },
-  { id:'strip018', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip019', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip020', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip021', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip022', correct:'Artifact',            wrong:'SV Ectopy'          },
-  { id:'strip023', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
-  { id:'strip024', correct:'Artifact',            wrong:'Ventricular Ectopy' },
-  { id:'strip025', correct:'Artifact',            wrong:'Atrial Flutter'     },
-];
+// ── QUESTIONS — loaded from CSV ───────────────────────────────
+let QUESTIONS = [];
+
+// ── CSV PARSER ────────────────────────────────────────────────
+// Expects header row: ID,Right,Wrong
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  return lines.slice(1).map(line => {
+    const cols = line.split(',').map(c => c.trim().replace(/\r/g,''));
+    return { id: cols[0], correct: cols[1], wrong: cols[2] };
+  }).filter(q => q.id && q.correct && q.wrong);
+}
 
 // ── STATE ─────────────────────────────────────────────────────
 const STORE = 'cct_artifact_drill_v1';
@@ -616,22 +599,51 @@ function toggleTheme() {
   try { applyTheme(localStorage.getItem('cct_theme') === 'light' ? 'light' : 'dark'); }
   catch(e) { applyTheme('dark'); }
 
-  // Set dynamic counts everywhere
-  const total = QUESTIONS.length;
-  document.getElementById('strip-count').textContent = total;
-  document.getElementById('progress-text').textContent = `0 / ${total}`;
-  document.title = `ECG Artifact Drill (${total} strips)`;
+  // Show loading state
+  document.getElementById('main').innerHTML =
+    '<div style="text-align:center;padding:60px;color:var(--muted);font-size:14px;">Loading strips…</div>';
 
-  const hadProgress = load();
-  buildDrill();
+  // Fetch and parse CSV
+  fetch(CSV_URL + '?cb=' + Date.now())
+    .then(r => {
+      if (!r.ok) throw new Error('CSV not found');
+      return r.text();
+    })
+    .then(text => {
+      QUESTIONS = parseCSV(text);
+      if (!QUESTIONS.length) throw new Error('No questions parsed');
 
-  if (hadProgress) {
-    const el = document.getElementById('save-status');
-    el.textContent = `↩ Progress restored (${Object.keys(answered).length} answered)`;
-    el.style.color = 'var(--accent2)';
-    el.style.opacity = '1';
-    setTimeout(() => { el.style.opacity = '0'; }, 4000);
-  }
+      // Set dynamic counts
+      const total = QUESTIONS.length;
+      document.getElementById('strip-count').textContent = total;
+      document.getElementById('progress-text').textContent = `0 / ${total}`;
+      document.title = `ECG Artifact Drill (${total} strips)`;
+
+      const hadProgress = load();
+
+      // If saved order has strips not in new CSV, reset it
+      if (order.length && !order.every(id => QUESTIONS.find(q => q.id === id))) {
+        order = [];
+      }
+
+      buildDrill();
+
+      if (hadProgress) {
+        const el = document.getElementById('save-status');
+        el.textContent = `↩ Progress restored (${Object.keys(answered).length} answered)`;
+        el.style.color = 'var(--accent2)';
+        el.style.opacity = '1';
+        setTimeout(() => { el.style.opacity = '0'; }, 4000);
+      }
+    })
+    .catch(err => {
+      document.getElementById('main').innerHTML =
+        `<div style="text-align:center;padding:60px;color:var(--red-lit);font-size:14px;">
+          Could not load answer_key.csv.<br>
+          <span style="color:var(--muted);font-size:12px;">Make sure answer_key.csv is in your repo root and GitHub Pages is enabled.</span>
+        </div>`;
+      console.error('CSV load error:', err);
+    });
 })();
 </script>
 </body>
