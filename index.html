@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Artifact or Not?</title>
+<title>ECG Artifact Drill</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
 
@@ -36,7 +36,7 @@
   --red-lit:   #c0392b;
   --text:      #1a2535;
   --muted:     #4a6480;
-  --label:     #1e5c9a;
+  --label:     #4f77a0;
   --white:     #0d1a2e;
 }
 
@@ -76,7 +76,7 @@ header::before {
 .header-text { flex: 1; }
 .header-eyebrow {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   letter-spacing: 3px; text-transform: uppercase;
   color: var(--label); margin-bottom: 4px;
 }
@@ -342,9 +342,9 @@ main {
 <header>
   <div class="header-inner">
     <div class="header-text">
-      <div class="header-eyebrow">Pivotal Health · CCT Training</div>
-      <h1>ECG <span>Artifact Drill</span></h1>
-      <div class="header-sub">25 strips · Identify artifact vs. real rhythm · Self-scoring</div>
+      <div class="header-eyebrow">Pivotal Health · Cardiac Technician Training</div>
+      <h1>ECG <span>Artifact Test</span></h1>
+      <div class="header-sub"><span id="strip-count">25</span> strips · Identify artifact vs. real rhythm · Self-scoring</div>
     </div>
     <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
   </div>
@@ -360,6 +360,7 @@ main {
     </div>
     <div class="spacer"></div>
     <span id="save-status"></span>
+    <button class="score-btn" style="background:transparent;border:1px solid var(--border);color:var(--muted);margin-right:4px;" onmouseover="this.style.borderColor='var(--red-lit)';this.style.color='var(--red-lit)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'" onclick="resetDrill()">Reset</button>
     <button class="score-btn" onclick="showScore()">Score</button>
   </div>
 </div>
@@ -614,6 +615,12 @@ function toggleTheme() {
 (function() {
   try { applyTheme(localStorage.getItem('cct_theme') === 'light' ? 'light' : 'dark'); }
   catch(e) { applyTheme('dark'); }
+
+  // Set dynamic counts everywhere
+  const total = QUESTIONS.length;
+  document.getElementById('strip-count').textContent = total;
+  document.getElementById('progress-text').textContent = `0 / ${total}`;
+  document.title = `ECG Artifact Drill (${total} strips)`;
 
   const hadProgress = load();
   buildDrill();
