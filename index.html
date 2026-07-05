@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ECG Artifact Drill</title>
+<title>Artifact or Not?</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Lato:wght@300;400;700&display=swap');
 
@@ -388,31 +388,31 @@ const IMG_BASE = 'https://tatk77.github.io/LMS-artifact-test/images/';
 // Format: { id, correct, wrong }
 // correct = the right answer, wrong = the distractor
 const QUESTIONS = [
-  { id:'strip001', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip002', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip003', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip004', correct:'Ventricular ectopy',  wrong:'Artifact'           },
-  { id:'strip005', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip006', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip007', correct:'Artifact',            wrong:'Atrial flutter'     },
-  { id:'strip008', correct:'Ventricular ectopy',  wrong:'Artifact'           },
-  { id:'strip009', correct:'Artifact',            wrong:'Atrial flutter'     },
-  { id:'strip010', correct:'Ventricular ectopy',  wrong:'Artifact'           },
-  { id:'strip011', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip012', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip013', correct:'SV ectopy',           wrong:'Artifact'           },
-  { id:'strip014', correct:'SV ectopy',           wrong:'Artifact'           },
-  { id:'strip015', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip016', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip017', correct:'Artifact',            wrong:'SV ectopy'          },
-  { id:'strip018', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip019', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip020', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip021', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip022', correct:'Artifact',            wrong:'SV ectopy'          },
-  { id:'strip023', correct:'Ventricular ectopy',  wrong:'Artifact'           },
-  { id:'strip024', correct:'Artifact',            wrong:'Ventricular ectopy' },
-  { id:'strip025', correct:'Artifact',            wrong:'Atrial flutter'     },
+  { id:'strip001', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip002', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip003', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip004', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
+  { id:'strip005', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip006', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip007', correct:'Artifact',            wrong:'Atrial Flutter'     },
+  { id:'strip008', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
+  { id:'strip009', correct:'Artifact',            wrong:'Atrial Flutter'     },
+  { id:'strip010', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
+  { id:'strip011', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip012', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip013', correct:'SV Ectopy',           wrong:'Artifact'           },
+  { id:'strip014', correct:'SV Ectopy',           wrong:'Artifact'           },
+  { id:'strip015', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip016', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip017', correct:'Artifact',            wrong:'SV Ectopy'          },
+  { id:'strip018', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip019', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip020', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip021', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip022', correct:'Artifact',            wrong:'SV Ectopy'          },
+  { id:'strip023', correct:'Ventricular Ectopy',  wrong:'Artifact'           },
+  { id:'strip024', correct:'Artifact',            wrong:'Ventricular Ectopy' },
+  { id:'strip025', correct:'Artifact',            wrong:'Atrial Flutter'     },
 ];
 
 // ── STATE ─────────────────────────────────────────────────────
