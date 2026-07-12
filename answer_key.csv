@@ -154,11 +154,11 @@ strip152,SV Ectopy,Artifact
 strip153,SV Ectopy,Artifact
 strip154,SV Ectopy,Artifact
 strip155,SV Ectopy,Artifact
-strip156,,
-strip157,,
-strip158,,
-strip159,,
-strip160,,
+strip156,Ventricular Ectopy,Artifact
+strip157,Artifact,Ventricular Ectopy
+strip158,Artifact,Ventricular Ectopy
+strip159,Artifact,Ventricular Ectopy
+strip160,Artifact,Ventricular Ectopy
 strip161,,
 strip162,,
 strip163,,
