@@ -270,6 +270,51 @@ main {
   object-fit: contain;
 }
 
+/* ── ZOOM (scroll / pinch to zoom, drag to move) ── */
+.zoom-box {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fff;
+  touch-action: pan-y;         /* swipe still scrolls the page until zoomed */
+  cursor: zoom-in;
+  user-select: none;
+}
+.zoom-box.zoomed   { cursor: grab; touch-action: none; }
+.zoom-box.dragging { cursor: grabbing; }
+.zoom-box .strip-img {
+  border: none; border-radius: 0;
+  transform-origin: 0 0;
+  transition: transform .12s ease-out;
+  -webkit-user-drag: none;
+}
+.zoom-box.dragging .strip-img, .zoom-box.pinching .strip-img { transition: none; }
+.zoom-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-top: 6px;
+}
+.zoom-controls { display: flex; gap: 4px; flex-shrink: 0; }
+.zoom-controls button {
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Lato', sans-serif; font-size: 16px; font-weight: 700;
+  line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.zoom-controls button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent2); color: #fff; }
+.zoom-controls button:disabled { opacity: .35; cursor: default; }
+.zoom-level {
+  min-width: 44px; padding: 0 6px;
+  font-size: 12px !important; font-weight: 700;
+}
+.zoom-hint {
+  font-size: 11px; color: var(--muted); letter-spacing: .3px;
+}
+
 /* ── CHOICES ── */
 .choices {
   padding: 0 16px 16px;
@@ -680,13 +725,23 @@ function buildDrill() {
         <span class="q-status" id="status-${q.id}"></span>
       </div>
       <div class="strip-wrap">
-        <img class="strip-img"
-          src="${IMG_BASE}${q.id}.png"
-          alt="ECG strip ${idx + 1}"
-          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="zoom-box" id="zoom-${q.id}">
+          <img class="strip-img"
+            src="${IMG_BASE}${q.id}.png"
+            alt="ECG strip ${idx + 1}" draggable="false"
+            onerror="this.parentElement.style.display='none';this.parentElement.nextElementSibling.style.display='flex'">
+        </div>
         <div style="display:none;align-items:center;justify-content:center;height:120px;
           border:2px dashed var(--border);border-radius:6px;color:var(--muted);font-size:13px;">
           Image not found: ${q.id}.png
+        </div>
+        <div class="zoom-bar" id="zoombar-${q.id}">
+          <span class="zoom-hint">Ctrl + scroll or pinch to zoom · drag to move · double-click to zoom in / reset</span>
+          <div class="zoom-controls">
+            <button type="button" data-zoom="out" title="Zoom out">−</button>
+            <button type="button" class="zoom-level" data-zoom="reset" title="Reset zoom">100%</button>
+            <button type="button" data-zoom="in" title="Zoom in">+</button>
+          </div>
         </div>
       </div>
       <div class="choices" id="choices-${q.id}">
@@ -702,11 +757,130 @@ function buildDrill() {
     `;
 
     main.appendChild(card);
+    setupZoom(document.getElementById(`zoom-${q.id}`), document.getElementById(`zoombar-${q.id}`));
 
     if (answered[q.id]) restoreAnswer(q.id);
   });
 
   updateProgress();
+}
+
+// ── IMAGE ZOOM ────────────────────────────────────────────────────────────
+// Ctrl + scroll (or trackpad / touchscreen pinch) zooms toward the pointer, drag pans
+// when zoomed, double-click zooms in (or resets if already zoomed), and the
+// − / 100% / + buttons work too. Every new question starts at 100%.
+const ZOOM_MAX = 4;      // biggest zoom (4 = 400%). Past this the dots get blocky.
+const ZOOM_STEP = 1.5;   // how much each + / − click zooms
+
+function setupZoom(box, bar) {
+  if (!box || !bar) return;
+  const img = box.querySelector('img');
+  const label = bar.querySelector('.zoom-level');
+  const btnIn = bar.querySelector('[data-zoom="in"]');
+  const btnOut = bar.querySelector('[data-zoom="out"]');
+  let scale = 1, x = 0, y = 0;
+
+  const apply = () => {
+    const w = box.clientWidth, h = box.clientHeight;
+    // keep the image filling the box: no empty space when panned to an edge
+    x = Math.min(0, Math.max(w - w * scale, x));
+    y = Math.min(0, Math.max(h - h * scale, y));
+    img.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    box.classList.toggle('zoomed', scale > 1.001);
+    label.textContent = Math.round(scale * 100) + '%';
+    btnOut.disabled = scale <= 1.001;
+    btnIn.disabled = scale >= ZOOM_MAX - 0.001;
+  };
+  // zoom by `factor`, keeping the point (px, py) inside the box fixed in place
+  const zoomAt = (px, py, factor) => {
+    const next = Math.min(ZOOM_MAX, Math.max(1, scale * factor));
+    x = px - (px - x) * (next / scale);
+    y = py - (py - y) * (next / scale);
+    scale = next;
+    apply();
+  };
+  const reset = () => { scale = 1; x = 0; y = 0; apply(); };
+  const local = e => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const center = () => [box.clientWidth / 2, box.clientHeight / 2];
+
+  // Buttons
+  btnIn.onclick = () => zoomAt(...center(), ZOOM_STEP);
+  btnOut.onclick = () => zoomAt(...center(), 1 / ZOOM_STEP);
+  label.onclick = reset;
+
+  // Ctrl + scroll wheel / trackpad pinch. Plain scrolling still scrolls the page.
+  box.addEventListener('wheel', e => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    zoomAt(...local(e), Math.exp(-e.deltaY * 0.002));
+  }, { passive: false });
+
+  // Double-click: zoom in where clicked, or reset if already zoomed
+  box.addEventListener('dblclick', e => {
+    if (scale > 1.001) reset(); else zoomAt(...local(e), 2.5);
+  });
+
+  // Drag to pan (mouse or one finger) and pinch to zoom (two fingers)
+  const pts = new Map();
+  let last = null, pinchDist = 0;
+  const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a[0] - b[0], a[1] - b[1]); };
+  const mid = () => { const [a, b] = [...pts.values()]; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; };
+
+  box.addEventListener('pointerdown', e => {
+    box.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, local(e));
+    if (pts.size === 2) { pinchDist = dist(); last = mid(); box.classList.add('pinching'); }
+    else { last = local(e); if (scale > 1.001) box.classList.add('dragging'); }
+  });
+  box.addEventListener('pointermove', e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, local(e));
+    if (pts.size === 2) {
+      const d = dist(), m = mid();
+      x += m[0] - last[0]; y += m[1] - last[1];
+      zoomAt(m[0], m[1], d / pinchDist);
+      pinchDist = d; last = m;
+    } else if (scale > 1.001) {
+      const p = local(e);
+      x += p[0] - last[0]; y += p[1] - last[1];
+      last = p;
+      apply();
+    }
+  });
+  const end = e => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) box.classList.remove('pinching');
+    if (pts.size === 1) last = [...pts.values()][0];
+    if (pts.size === 0) box.classList.remove('dragging');
+  };
+  box.addEventListener('pointerup', end);
+  box.addEventListener('pointercancel', end);
+
+  // keep things lined up if the window is resized while zoomed
+  window.addEventListener('resize', apply);
+  apply();
+}
+
+function revealUnanswered(key) {
+  const q = getQ(key);
+  const card = document.getElementById(`card-${key}`);
+  if (!q || !card) return;
+  card.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.choice === q.correct) btn.classList.add('reveal');
+  });
+  card.classList.add('wrong');
+  document.getElementById(`status-${key}`).textContent = '✗';
+  const fb = document.getElementById(`fb-${key}`);
+  fb.className = 'feedback wrong';
+  fb.textContent = `Not answered. The answer is ${q.correct}.`;
+}
+
+function goPrev() {
+  if (cursor > 0) { cursor--; save(); renderCard(); }
+}
+function goNext() {
+  if (cursor < order.length - 1) { cursor++; save(); renderCard(); }
 }
 
 // ── ANSWER HANDLING ───────────────────────────────────────────
